@@ -1,0 +1,494 @@
+#start new project
+
+django-admin startproject ecommerce
+
+
+
+
+
+#setup templates directories in ecommerce/ecommerce/settings.py
+
+
+
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+
+
+#In TEMPLATES array, change DIRS from [] to
+
+
+
+ 'DIRS': [os.path.join(PROJECT_ROOT, 'templates').replace('\\','/')],
+
+ 
+
+
+
+#Run an initial data migration
+
+
+
+python manage.py migrate
+
+
+
+#Add an admin user
+
+
+
+python manage.py createsuperuser
+
+
+
+
+
+#Add a home page:
+
+
+
+#Edit ecommerce/ecommerce/urls.py
+
+Add to urlpatterns array:
+
+
+
+ url(r'^$','ecommerce.views.home',name='home'),
+
+
+
+
+
+#Create new ecommerce/ecommerce/views.py
+
+#Add view handler
+
+
+
+from django.shortcuts import render
+
+
+
+def home(request):
+
+    return render(request, 'ecommerce/home.html', {})
+
+
+
+#Create two new directories templates/eccommerce
+
+
+
+(So that ecommerce/ecommerce/templates/eccommerce exists)
+
+
+
+#In ecommerce/ecommerce/templates/eccommerce create home.html
+
+
+
+#Insert some html
+
+
+
+#Test your server
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Authentication
+
+
+
+Registration:
+
+
+
+1) In ecommerce/ecommerce/urls.py add a new url route /register/
+
+
+
+url(r'^register/','ecommerce.views.register',name='register'),
+
+
+
+2) In ecommerce/ecommerce/views.py add the relevant django user libraries.
+
+
+
+from django.shortcuts import redirect
+
+
+
+from django.contrib.auth.models import User
+
+from django.contrib.auth import authenticate, login,logout
+
+
+
+
+
+def register(request):
+
+    #If user is not attempting to POST with their request, load up the register webpage
+
+    if request.method == 'GET' or request.method != 'POST':
+
+            return render(request, 'ecommerce/register.html', {})
+
+
+
+    #Otherwise, print user's post request to the terminal log
+
+    print request.POST
+
+    #Create a new user using built in django user libraries, pulling information from their POST request
+
+    user = User.objects.create_user(username = request.POST['user_name'], email = request.POST['email'], password = request.POST['password'])
+
+    #If we are not successful in generating a user, reload the register webpage.
+
+    if not user:
+
+       return render(request, 'ecommerce/register.html', {})
+
+    #Otherwise, we save the new user instance
+
+    user.save()
+
+    #And then we log the user in.
+
+    user = authenticate(username=request.POST['user_name'],password=request.POST['password'])
+
+    login(request, user)
+
+    #Finally, we redirect to the homepage if we were successful in registering a new user. There is now a logged in user.
+
+    return redirect('/')
+
+
+
+3) Add a new template in ecommerce/ecommerce/templates/ecommerce/register.html
+
+
+
+with the following
+
+
+
+<form action='/register/' method='post'>
+
+  {% csrf_token %}
+
+  <label for='email' >Email Address:</label>
+
+  <input type='text' name='email' id='email' maxlength="50" />
+
+  </br>
+
+  <label for='username' >UserName:</label>
+
+  <input type='text' name='user_name' id='username' maxlength="50" />
+
+  </br>
+
+  <label for='password' >Password:</label>
+
+  <input type='password' name='password' id='password' maxlength="50" />
+
+  </br>
+
+  <input type='submit' name='Submit' value='Submit' />
+
+</form>
+
+
+
+###########################################
+
+Login:
+
+
+
+1) Add an new route in ecoomerce/ecommerce/urls.py for /login
+
+
+
+
+
+2) Add a new template called login.html, that only asks for username and password using a modified version of the form above.
+
+
+
+3) Form action = '/login/'
+
+
+
+4) Add a new view handler in views.py
+
+
+
+
+
+def login_user(request):
+
+
+
+    if request.method == 'GET' or request.method != 'POST':
+
+       return render(request, 'ecommerce/login.html', {})
+
+
+
+    user = authenticate(username = request.POST['user_name'], password = request.POST['password'])
+
+
+
+    if not user:
+
+       return redirect('/login')
+
+
+
+    login(request, user)
+
+
+
+    return redirect('/')
+
+
+
+
+
+Logout:
+
+
+
+1) Create a new url/view handler for /logout
+
+
+
+2) When /logout is called, redirect user to the home page
+
+
+
+def logout_user(request):
+
+    logout(request)
+
+
+
+    return redirect('/')
+
+
+
+
+
+
+
+https://docs.djangoproject.com/en/1.8/topics/auth/default/#how-to-log-a-user-out
+
+
+
+
+
+
+
+
+
+# Products
+
+
+
+1) Create a new products app
+
+
+
+python manage.py startapp products
+
+
+
+2) Add the new app to ecommerce/ecommerce/settings.py
+
+
+
+INSTALLED_APPS = (...,'products')
+
+
+
+3) In ecommerce/ecommerce/urls.py add
+
+
+
+from django.conf.urls import include
+
+
+
+    url(r'^products/', include('products.urls', namespace = 'products')),
+
+
+
+4) Create new route in ecommerce/products/urls.py - will probably need to create this file
+
+
+
+from django.conf.urls import url
+
+
+
+urlpatterns = [
+
+     url(r'^$', 'products.views.index', name='index'),
+
+         ]
+
+5) In ecommerce/products/views.py 
+
+from products.models import Product
+
+from django.shortcuts import render,redirect
+
+
+
+add a view handler
+
+
+
+def index
+
+
+
+and in ecommerce/products/templates/products/ create an index.html (create the directory structure)
+
+
+
+
+
+6) Create a new Product Model by editing ecommerce/products/models.py
+
+
+
+class Product(models.Model):
+
+      name = models.CharField(max_length=200)
+
+      description = models.TextField()
+
+      price = models.FloatField()
+
+      def __str__(self):
+
+          return self.name
+
+
+
+
+
+7) Run
+
+
+
+python manage.py makemigrations
+
+python manage.py migrate
+
+
+
+8) Create a few products in the shell by
+
+
+
+python manage.py shell
+
+
+
+In [1]: from products.models import Product
+
+In [2]: p = Product()
+In [3]: p.name = "Jet Pack"
+In [4]: p.description = "Super fast Jet Pack"
+In [5]: p.price = 10000
+In [6]: p.save()
+In [7]: Product.objects.all()
+Out[7]: [<Product: Jet Pack>]
+9) Update the view in products/views.py and the index.html to list all products through templating
+10) Create new route and template, still in the products app, to show just one listing determined by the user entering the url products/id#. Reference your blog app if you need to. Name your new html page product.html
+- Return to your index.html and add a <a href="">View Product</a> link within your templating for loop. Link to the product single page view route that you have just created, setting the specific product's id {{product.id}} as your url. Now the user can view each product on its own page. Test that this feature works before continuing.
+11) Create more then 10 products in the django shell
+# Pagination
+12) Add pagination to the products listing page, show 10 products per page, by updating index in views.py and index.html
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+def index(request):
+    all_products = Product.objects.all()
+    paginator = Paginator(all_products, 10)
+        page = request.GET.get('page')
+    try:
+        all_products = paginator.page(page)
+
+    except PageNotAnInteger:
+        all_products = paginator.page(1)
+    except EmptyPage:
+    	all_products = paginator.page(paginator.num_pages)
+    return render(request,'products/index.html',{'products':all_products})
+in index.html, under your printing of all products:
+<div class="pagination">
+  <span class="step-links">
+      {% if products.has_previous %}
+          <a href = "?page={{ items.previous_page_number }}">previous</a>
+	      {% endif %}
+    <span class="current">
+
+          Page {{ products.number }} of {{ products.paginator.num_pages }}.
+
+	      </span>
+
+
+
+    {% if products.has_next %}
+
+        <a href = "?page={{ products.next_page_number }}">next</a>
+
+	    {% endif %}
+
+	      </span>
+
+	      </div>
+
+
+
+Try to comment out the paginator code to understand it
+
+https://docs.djangoproject.com/en/1.8/topics/pagination/
+
+
+
+# Search
+
+1) Add search box to products listing page, search uses GET and query params to generate new page.  The search query uses the name and description fields.
+in index.html add
+<form>
+  search:<br>
+    <input type="text" name="search"><br>
+      <input type='submit'/>
+        </form>
+2) In ecommerce/products/views.py 
+from django.db.models import Q
+
+in def index(request):
+    search = request.GET.get('search')
+    if search:
+       all_products = all_products.filter(Q(name__icontains=search) | Q(description__icontains=search))
+
+#Reading https://docs.djangoproject.com/es/1.9/topics/db/queries/#complex-lookups-with-q-objects
+#Extenstion - Filter 
+1) Allow the user to filter products by price. Use GET and query params.  Filter by a range of prices (0-50, 50-100, 100+).
+Check out this resource:
+https://docs.djangoproject.com/es/1.9/topics/db/queries/

@@ -1,0 +1,27 @@
+.bg-image-vertical {
+	position: relative;
+	overflow: hidden;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 100%;
+	}
+
+	.login-container{
+		margin-top: -25px;
+	}
+	
+	.btn-info {
+		--bs-btn-border-color:rgb(121, 68, 126);
+		--bs-btn-hover-border-color:rgb(121, 68, 126);
+		--bs-btn-hover-bg:white;
+		--bs-btn-bg:rgb(121, 68, 126);
+
+	}
+	
+	@media (min-width: 1025px) {
+	.h-custom-2 {
+	height: 100%;
+	}
+	}
+
+	
